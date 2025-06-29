@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube URL Input</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        input[type="url"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        input[type="url"].valid {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        input[type="url"].invalid {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .validation-message {
+            margin-top: 8px;
+            font-size: 14px;
+            min-height: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .validation-message.success {
+            color: #10b981;
+        }
+
+        .validation-message.error {
+            color: #ef4444;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preview {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .preview h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .preview p {
+            color: #666;
+            word-break: break-all;
+            margin-bottom: 20px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+
+        .video-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .video-info h4 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .video-info p {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .youtube-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <svg class="youtube-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            YouTube URL Input
+        </h1>
+
+        <form id="youtubeForm">
+            <div class="input-group">
+                <label for="youtubeUrl">Masukkan URL Video YouTube:</label>
+                <input 
+                    type="url" 
+                    id="youtubeUrl" 
+                    name="youtubeUrl"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    autocomplete="off"
+                >
+                <div class="validation-message" id="validationMessage"></div>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn" disabled>
+                Proses Video
+            </button>
+        </form>
+
+        <div class="preview" id="preview">
+            <h3>Preview Video:</h3>
+            <p id="previewUrl"></p>
+            
+            <div class="loading" id="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Memuat video...</p>
+            </div>
+            
+            <div class="video-container" id="videoContainer" style="display: none;">
+                <iframe id="youtubeEmbed" 
+                        src="" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+            
+            <div class="video-info" id="videoInfo" style="display: none;">
+                <h4>Informasi Video:</h4>
+                <p><strong>Video ID:</strong> <span id="displayVideoId"></span></p>
+                <p><strong>URL Embed:</strong> <span id="embedUrl"></span></p>
+                <p><strong>URL Thumbnail:</strong> <span id="thumbnailUrl"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('youtubeUrl');
+        const validationMessage = document.getElementById('validationMessage');
+        const submitBtn = document.getElementById('submitBtn');
+        const preview = document.getElementById('preview');
+        const previewUrl = document.getElementById('previewUrl');
+        const form = document.getElementById('youtubeForm');
+        const loading = document.getElementById('loading');
+        const videoContainer = document.getElementById('videoContainer');
+        const youtubeEmbed = document.getElementById('youtubeEmbed');
+        const videoInfo = document.getElementById('videoInfo');
+        const displayVideoId = document.getElementById('displayVideoId');
+        const embedUrl = document.getElementById('embedUrl');
+        const thumbnailUrl = document.getElementById('thumbnailUrl');
+
+        // Regex pattern untuk validasi URL YouTube
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/;
+
+        // Fungsi untuk mengekstrak video ID dari URL YouTube
+        function extractVideoId(url) {
+            const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/);
+            return match ? match[1] : null;
+        }
+
+        // Fungsi untuk menampilkan video YouTube
+        function displayYouTubeVideo(videoId) {
+            // Show loading
+            loading.style.display = 'block';
+            videoContainer.style.display = 'none';
+            videoInfo.style.display = 'none';
+
+            // Buat URL embed
+            const embedUrlString = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&showinfo=0`;
+            const thumbnailUrlString = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+
+            // Set iframe src
+            youtubeEmbed.src = embedUrlString;
+
+            // Simulate loading time (dalam implementasi nyata, bisa dihilangkan)
+            setTimeout(() => {
+                loading.style.display = 'none';
+                videoContainer.style.display = 'block';
+                videoInfo.style.display = 'block';
+
+                // Update info video
+                displayVideoId.textContent = videoId;
+                embedUrl.textContent = embedUrlString;
+                thumbnailUrl.textContent = thumbnailUrlString;
+            }, 1000);
+        }
+
+        // Fungsi untuk menyembunyikan video
+        function hideVideo() {
+            videoContainer.style.display = 'none';
+            videoInfo.style.display = 'none';
+            loading.style.display = 'none';
+            youtubeEmbed.src = '';
+        }
+
+        // Fungsi validasi real-time
+        function validateYouTubeUrl(url) {
+            if (!url) {
+                return { valid: false, message: '' };
+            }
+
+            if (youtubeRegex.test(url)) {
+                const videoId = extractVideoId(url);
+                return { 
+                    valid: true, 
+                    message: `✓ URL YouTube valid! Video ID: ${videoId}`,
+                    videoId: videoId
+                };
+            } else {
+                return { 
+                    valid: false, 
+                    message: '✗ URL tidak valid. Gunakan format YouTube yang benar.' 
+                };
+            }
+        }
+
+        // Event listener untuk validasi real-time
+        urlInput.addEventListener('input', function() {
+            const url = this.value.trim();
+            const validation = validateYouTubeUrl(url);
+
+            // Reset classes
+            this.classList.remove('valid', 'invalid');
+            validationMessage.classList.remove('success', 'error');
+
+            if (url) {
+                if (validation.valid) {
+                    this.classList.add('valid');
+                    validationMessage.classList.add('success');
+                    validationMessage.textContent = validation.message;
+                    submitBtn.disabled = false;
+                    
+                    // Show preview
+                    preview.style.display = 'block';
+                    previewUrl.textContent = url;
+                    
+                    // Display YouTube video
+                    displayYouTubeVideo(validation.videoId);
+                } else {
+                    this.classList.add('invalid');
+                    validationMessage.classList.add('error');
+                    validationMessage.textContent = validation.message;
+                    submitBtn.disabled = true;
+                    preview.style.display = 'none';
+                    hideVideo();
+                }
+            } else {
+                validationMessage.textContent = '';
+                submitBtn.disabled = true;
+                preview.style.display = 'none';
+                hideVideo();
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const url = urlInput.value.trim();
+            const validation = validateYouTubeUrl(url);
+
+            if (validation.valid) {
+                // Di sini Anda bisa menambahkan logika untuk memproses URL
+                // Misalnya mengirim ke server atau API
+                
+                alert(`URL berhasil diproses!\nVideo ID: ${validation.videoId}\nURL: ${url}`);
+                
+                // Contoh: redirect ke halaman lain atau lakukan AJAX request
+                // window.location.href = `/process-video?id=${validation.videoId}`;
+                
+                // Atau kirim data via fetch API
+                processYouTubeUrl(url, validation.videoId);
+            } else {
+                urlInput.classList.add('shake');
+                setTimeout(() => urlInput.classList.remove('shake'), 500);
+            }
+        });
+
+        // Fungsi untuk memproses URL YouTube
+        async function processYouTubeUrl(url, videoId) {
+            try {
+                // Contoh penggunaan fetch API
+                const response = await fetch('/api/youtube-process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        videoId: videoId
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Sukses:', result);
+                } else {
+                    console.error('Error:', response.status);
+                }
+            } catch (error) {
+                console.log('Contoh pemrosesan URL:', url);
+                console.log('Video ID:', videoId);
+                // Untuk demo, hanya log ke console
+            }
+        }
+
+        // Auto focus pada input saat halaman dimuat
+        window.addEventListener('load', () => {
+            urlInput.focus();
+        });
+    </script>
+</body>
+</html>
